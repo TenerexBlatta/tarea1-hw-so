@@ -3,3 +3,16 @@
 */
 // Recordar que programa sea compilable finalmente para Linux
 // No I.A.
+
+#include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
+
+int grafo [30][30];
+int nodosarecorrer[5];
+int nodoinicial;
+
+int main(){
+
+   return 0;
+}
