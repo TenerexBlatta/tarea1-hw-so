@@ -1,0 +1,57 @@
+/* Integrantes: Tomas, Melissa, Cristobal 
+   Paralelo: INF2322-2
+*/
+// Recordar que programa sea compilable finalmente para Linux
+// No I.A.
+#include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
+#include <semaphore.h>
+
+int nodo_inicial;
+int nodos_a_recorrer[5];
+int grafo [30][30];
+const char simbolo_token = ';';
+sem_t sem_hebras_disponibles = 40;
+sem_t mutex = 1;
+const int caracteres_max_por_linea = 160;
+
+int * obtener_nodos_a_recorrer(FILE archivo) {
+      int* nodos_a_recorrer = malloc(5 * sizeof(int));
+
+      return nodos_a_recorrer;
+}
+
+void leer_grafo() {
+   FILE * archivo; // Puntero a archivo
+   archivo = fopen("grafo.csv","r"); // Abre el archivo en modo lectura
+   int fila_en_lectura = 0; // Para diferenciar entre la primera línea, la segunda y las siguientes.
+   char linea[caracteres_max_por_linea]; // Es el 'buffer' de la fila que esta siendo leida.
+
+   if (archivo == NULL) {
+      printf("No se logro abrir el archivo.\n");
+   } else {
+      printf("Archivo grafo.csv abierto exitosamente.\n");
+      
+      while(fgets(linea, caracteres_max_por_linea, archivo) != NULL){
+
+
+
+      } 
+
+
+
+   }
+
+
+}
+
+int main(){
+   
+   sem_init(&sem_hebras_disponibles, 0, 40);
+   sem_init(&mutex, 0, 1);
+   
+   leer_grafo();
+
+   return 0;
+}
