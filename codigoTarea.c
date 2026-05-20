@@ -16,11 +16,14 @@ sem_t sem_hebras_disponibles = 40;
 sem_t mutex = 1;
 const int caracteres_max_por_linea = 160;
 
-int * obtener_nodos_a_recorrer(FILE archivo) {
-      int* nodos_a_recorrer = malloc(5 * sizeof(int));
 
+/* No estoy seguro si modular esta funcion valga la pena, me esta costando implementarlo asi.
+int * obtener_nodos_a_recorrer(FILE * archivo, int fila_en_lectura) {
+      int* nodos_a_recorrer = malloc(5 * sizeof(int));
+      char linea[caracteres_max_por_linea];
       return nodos_a_recorrer;
 }
+       */
 
 void leer_grafo() {
    FILE * archivo; // Puntero a archivo
@@ -34,7 +37,19 @@ void leer_grafo() {
       printf("Archivo grafo.csv abierto exitosamente.\n");
       
       while(fgets(linea, caracteres_max_por_linea, archivo) != NULL){
+         if (fila_en_lectura == 0) {
+            // atoi convierte un string a un entero, en este caso el nodo inicial.
+            nodo_inicial = atoi(linea);
+            printf("Nodo inicial encontrado: %d\n", nodo_inicial);
+            fila_en_lectura++;
+         } else if (fila_en_lectura == 1) {
 
+            // nodos_a_recorrer = obtener_nodos_a_recorrer(archivo, fila_en_lectura); 
+            
+
+
+
+         }
 
 
       } 
@@ -43,6 +58,7 @@ void leer_grafo() {
 
    }
 
+   fclose(archivo); // Cierra el archivo y libera los recursos.
 
 }
 
