@@ -3,16 +3,34 @@
 */
 // Recordar que programa sea compilable finalmente para Linux
 // No I.A.
-
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include <semaphore.h>
 
+int nodo_inicial;
+int nodos_a_recorrer[5];
 int grafo [30][30];
-int nodosarecorrer[5];
-int nodoinicial;
+const char simbolo_token = ';';
+sem_t sem_hebras_disponibles = 40;
+sem_t mutex = 1;
+
+
+int * obtener_nodos_a_recorrer() {
+      int* nodos_a_recorrer = malloc(5 * sizeof(int));
+
+      return nodos_a_recorrer;
+}
+
+void leer_grafo() {
+   FILE * archivo;
+   archivo = fopen("grafo.csv","r");
+
+}
 
 int main(){
+    
+   leer_grafo();
 
    return 0;
 }
