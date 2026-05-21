@@ -12,8 +12,8 @@ int nodo_inicial;
 int nodos_a_recorrer[5];
 int grafo [30][30];
 const char simbolo_token = ';';
-sem_t sem_hebras_disponibles = 40;
-sem_t mutex = 1;
+sem_t sem_hebras_disponibles;
+sem_t mutex;
 const int caracteres_max_por_linea = 160;
 
 
