@@ -17,14 +17,6 @@ sem_t mutex;
 const int caracteres_max_por_linea = 160;
 
 
-/* No estoy seguro si modular esta funcion valga la pena, me esta costando implementarlo asi.
-int * obtener_nodos_a_recorrer(FILE * archivo, int fila_en_lectura) {
-      int* nodos_a_recorrer = malloc(5 * sizeof(int));
-      char linea[caracteres_max_por_linea];
-      return nodos_a_recorrer;
-}
-       */
-
 void leer_grafo() {
    FILE * archivo; // Puntero a archivo
    archivo = fopen("grafo.csv","r"); // Abre el archivo en modo lectura
