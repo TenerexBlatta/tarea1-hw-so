@@ -19,15 +19,14 @@ sem_t sem_hebras_disponibles;
 pthread_mutex_t mutex_mejor_solucion;
 
 
-typedef struct { // Estructura para representar el estado de cada hebra, con la idea de ir propagando el camino de una a otra.
+typedef struct { 
     int nodo_actual;
     int camino[30]; // Nodos recorridos por la hebra, con un tamaño máximo del número total de nodos en el grafo.
-    int largo_camino; // Esto serian los saltos dados de nodo a nodo.
-    int visitados[30];
+    int cant_saltos; // Esto serian los saltos dados de nodo a nodo o distancia coloquialmente hablando.
+    int nodos_visitados[30];
     int objetivos_restantes[5];
-    int restantes;
-
-} instancia_Hebra;
+    int cant_objetivos_restantes;
+} instancia_Hebra; // Estructura para representar el estado de cada hebra, con la idea de ir propagando el camino de una a otra.
 
 void abrir_Archivo(){
       archivo_en_lectura = fopen("grafo.csv", "r"); // Abre el archivo en modo lectura.
@@ -40,7 +39,7 @@ void abrir_Archivo(){
 }
 
 void inicializar_Hebra(instancia_Hebra *hebra, int nodo_actual) {
-   //Recibo el nodo actual para diferenciar si es la primera, o ya trae herencia de informacion/camino de una hebra previa.
+   //Recibo el nodo actual para diferenciar si es la primera, o hay que traer herencia de informacion/camino de una hebra previa.
    
    if (nodo_actual == NULL) {
       hebra->nodo_actual = nodo_inicial;
@@ -64,13 +63,16 @@ void leer_Grafo(FILE *archivo_en_lectura) {
       
       while(fgets(linea, caracteres_max_por_linea, archivo_en_lectura) != NULL){
          if (fila_en_lectura == 0) {
-            // atoi convierte un string a un entero, en este caso el nodo inicial.
+            // Atoi convierte un string a un entero, en este caso el nodo inicial.
             nodo_inicial = atoi(linea);
             printf("Nodo inicial encontrado: %d\n", nodo_inicial);
             fila_en_lectura++;
          } else if (fila_en_lectura == 1) {
-            //Procesar segunda linea
-            char *token = strtok(linea, &simbolo_token); // Strtok es una función que divide una cadena en tokens basados en un delimitador, en este caso el ';'.
+            // Procesar segunda linea
+            
+            // Strtok divide una cadena en tokens basados en un delimitador, en este caso el ';'.
+            char *token = strtok(linea, &simbolo_token); 
+            
             int indice_nodos_a_recorrer = 0;
             while (token != NULL && indice_nodos_a_recorrer < 5) {
                nodos_a_recorrer[indice_nodos_a_recorrer] = atoi(token);
@@ -81,7 +83,10 @@ void leer_Grafo(FILE *archivo_en_lectura) {
             fila_en_lectura++;
          }   
             else {
-            //Procesar siguientes lineas
+            // Procesar las siguientes líneas para llenar la matriz del grafo.
+            char *token = strtok(linea, &simbolo_token);
+            // Aqui deberia usarse la matriz donde la primera columna es el nodo, y las siguentes sus vecinos a visitar
+               
             fila_en_lectura++;
             
          }
@@ -95,21 +100,32 @@ void leer_Grafo(FILE *archivo_en_lectura) {
 int main() {
       
     abrir_Archivo(); // Abre el archivo y verifica que se haya abierto correctamente.
-   
-    inicializar_Grafo(); // Inicializar la matriz del grafo con -1 para marcar las posiciones vacías.
+      if(archivo_en_lectura == NULL) {
+         return 0;
+      }
+      
+   // Inicializar la matriz del grafo con -1 para marcar las posiciones vacías.
+    inicializar_Grafo(); 
 
-    leer_Grafo(archivo_en_lectura); // Llenar el grafo con los datos extraidos del archivo
+   // Llenar el grafo con los datos extraidos del archivo
+    leer_Grafo(archivo_en_lectura); 
 
-    fclose(archivo_en_lectura); // Cierra el archivo y libera los recursos.
+   // Cierra el archivo y libera los recursos.
+    fclose(archivo_en_lectura); 
 
-    pthread_mutex_init(&mutex_mejor_solucion, NULL); // Inicializa el mutex para proteger el acceso a la mejor solución encontrada y no se sobreescriba en simultaneo.
+   // Inicializa el mutex para proteger el acceso a la mejor solución encontrada y no se sobreescriba en simultaneo.
+    pthread_mutex_init(&mutex_mejor_solucion, NULL); 
 
-    sem_init(&sem_hebras_disponibles, 0, 40); // Inicializa el semaforo en 40 hebras disponibles, para controlar el num max de hebras concurrentes.
+   // Inicializa el semaforo en 40 hebras disponibles, para controlar el num max de hebras concurrentes.
+    sem_init(&sem_hebras_disponibles, 0, 40); 
 
-    instancia_Hebra *inicial = malloc(sizeof(instancia_Hebra)); // Pide memoria para la hebra inicial, para asi poder empezar la exploracion desde el nodo 10 (inicial).
+   // Pide memoria para la hebra inicial, para asi poder empezar la exploracion desde el nodo 10 (inicial).
+    instancia_Hebra *inicial = malloc(sizeof(instancia_Hebra)); 
 
-    inicializar_Hebra(inicial, NULL); // Tengo mis observaciones si a lo mejor hay que mandarle mas parametros o no, pero por ahora solo le mando el nodo actual, que en este caso va null para que sepa que es la primera hebra.
-
+   // Tengo mis observaciones si a lo mejor hay que mandarle mas parametros o no, pero por ahora solo le mando el nodo actual, 
+   // que en este caso va null para que sepa que es la primera hebra.
+    inicializar_Hebra(inicial, NULL); 
+    
     explorar(inicial);
 
     sleep(3);
