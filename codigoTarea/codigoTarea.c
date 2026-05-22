@@ -3,6 +3,9 @@
 */
 // Recordar que programa sea compilable finalmente para Linux
 // No I.A.
+#define MAX_NODOS 30
+#define MAX_OBJETIVOS 5
+#define MAX_HEBRAS 40
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -10,10 +13,10 @@
 #include <pthread.h>
 
 int nodo_inicial;
-int nodos_a_recorrer[5];
-int grafo [30][30];
+int nodos_a_recorrer[MAX_OBJETIVOS];
+int grafo [MAX_NODOS][MAX_NODOS];
 const int caracteres_max_por_linea = 160;
-const char simbolo_token = ';';
+const char *delimitador = ";";
 FILE *archivo_en_lectura;
 sem_t sem_hebras_disponibles;
 pthread_mutex_t mutex_mejor_solucion;
@@ -21,10 +24,10 @@ pthread_mutex_t mutex_mejor_solucion;
 
 typedef struct { 
     int nodo_actual;
-    int camino[30]; // Nodos recorridos por la hebra, con un tamaño máximo del número total de nodos en el grafo.
+    int camino[MAX_NODOS]; // Nodos recorridos por la hebra, con un tamaño máximo del número total de nodos en el grafo.
     int cant_saltos; // Esto serian los saltos dados de nodo a nodo o distancia coloquialmente hablando.
-    int nodos_visitados[30];
-    int objetivos_restantes[5];
+    int nodos_visitados[MAX_NODOS];
+    int objetivos_restantes[MAX_OBJETIVOS];
     int cant_objetivos_restantes;
 } instancia_Hebra; // Estructura para representar el estado de cada hebra, con la idea de ir propagando el camino de una a otra.
 
@@ -38,16 +41,6 @@ void abrir_Archivo(){
 
 }
 
-void inicializar_Hebra(instancia_Hebra *hebra, int nodo_actual) {
-   //Recibo el nodo actual para diferenciar si es la primera, o hay que traer herencia de informacion/camino de una hebra previa.
-   
-   if (nodo_actual == NULL) {
-      hebra->nodo_actual = nodo_inicial;
-   } else {
-      hebra->nodo_actual = nodo_actual;
-   }
-
-}
 
 void inicializar_Grafo() {
    for (int i = 0; i < 30; i++) {
@@ -57,36 +50,71 @@ void inicializar_Grafo() {
    }
 }
 
+void imprimir_Grafo() {
+
+    for(int i = 0; i < 30; i++) {
+
+        if(grafo[i][0] != -1) {
+
+            printf("%d -> ", i);
+
+            for(int j = 0; grafo[i][j] != -1; j++) {
+
+                printf("%d ", grafo[i][j]);
+            }
+
+            printf("\n");
+        }
+    }
+}
+
 void leer_Grafo(FILE *archivo_en_lectura) {
    int fila_en_lectura = 0; // Para diferenciar entre la primera línea, la segunda y las siguientes.
    char linea[caracteres_max_por_linea]; // Es el 'buffer' de la fila que esta siendo leida.
       
       while(fgets(linea, caracteres_max_por_linea, archivo_en_lectura) != NULL){
          if (fila_en_lectura == 0) {
+            // Lee primera linea
+
             // Atoi convierte un string a un entero, en este caso el nodo inicial.
             nodo_inicial = atoi(linea);
             printf("Nodo inicial encontrado: %d\n", nodo_inicial);
             fila_en_lectura++;
+
          } else if (fila_en_lectura == 1) {
             // Procesar segunda linea
             
             // Strtok divide una cadena en tokens basados en un delimitador, en este caso el ';'.
-            char *token = strtok(linea, &simbolo_token); 
+            char *token = strtok(linea, delimitador);
             
             int indice_nodos_a_recorrer = 0;
             while (token != NULL && indice_nodos_a_recorrer < 5) {
                nodos_a_recorrer[indice_nodos_a_recorrer] = atoi(token);
                printf("Nodo objetivo encontrado: %d\n", nodos_a_recorrer[indice_nodos_a_recorrer]);
-               token = strtok(NULL, &simbolo_token); // Continúa dividiendo la cadena hasta que no haya más tokens.
+               token = strtok(NULL, delimitador); // Continúa dividiendo la cadena hasta que no haya más tokens.
                indice_nodos_a_recorrer++;
             }
             fila_en_lectura++;
          }   
             else {
             // Procesar las siguientes líneas para llenar la matriz del grafo.
-            char *token = strtok(linea, &simbolo_token);
-            // Aqui deberia usarse la matriz donde la primera columna es el nodo, y las siguentes sus vecinos a visitar
-               
+               char *token = strtok(linea, delimitador);
+
+               int nodo = atoi(token);
+
+               int indice_vecino = 0;
+
+               token = strtok(NULL, delimitador);
+
+               while(token != NULL) {
+
+                  grafo[nodo][indice_vecino] = atoi(token);
+
+                  token = strtok(NULL, delimitador);
+
+                  indice_vecino++;
+               }
+                        
             fila_en_lectura++;
             
          }
@@ -95,6 +123,21 @@ void leer_Grafo(FILE *archivo_en_lectura) {
 
 }
    
+void inicializar_hebra_Inicial(instancia_Hebra *hebra) {
+   
+
+}
+
+void inicializar_hebra_Hija() {
+
+
+}
+
+void explorar_Grafo(){
+   // Aqui se implementaria la logica de exploracion del grafo, con la idea de ir creando nuevas hebras para cada nodo vecino a visitar, y asi ir propagando el camino recorrido por cada hebra.
+  
+}
+
 
    
 int main() {
@@ -117,16 +160,15 @@ int main() {
     pthread_mutex_init(&mutex_mejor_solucion, NULL); 
 
    // Inicializa el semaforo en 40 hebras disponibles, para controlar el num max de hebras concurrentes.
-    sem_init(&sem_hebras_disponibles, 0, 40); 
+    sem_init(&sem_hebras_disponibles, 0, MAX_HEBRAS); 
 
    // Pide memoria para la hebra inicial, para asi poder empezar la exploracion desde el nodo 10 (inicial).
     instancia_Hebra *inicial = malloc(sizeof(instancia_Hebra)); 
 
    // Tengo mis observaciones si a lo mejor hay que mandarle mas parametros o no, pero por ahora solo le mando el nodo actual, 
-   // que en este caso va null para que sepa que es la primera hebra.
-    inicializar_Hebra(inicial, NULL); 
+    inicializar_hebra_Inicial(inicial); 
     
-    explorar(inicial);
+    explorar_Grafo(inicial);
 
     sleep(3);
 
