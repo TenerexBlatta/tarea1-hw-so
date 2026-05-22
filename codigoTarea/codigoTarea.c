@@ -12,19 +12,36 @@
 int nodo_inicial;
 int nodos_a_recorrer[5];
 int grafo [30][30];
+const int caracteres_max_por_linea = 160;
 const char simbolo_token = ';';
+FILE *archivo_en_lectura;
 sem_t sem_hebras_disponibles;
 pthread_mutex_t mutex_mejor_solucion;
-const int caracteres_max_por_linea = 160;
+
 
 typedef struct { // Estructura para representar el estado de cada hebra, con la idea de ir propagando el camino de una a otra.
+
     int nodo_actual;
+
     int camino[30]; // Nodos recorridos por la hebra, con un tamaño máximo del número total de nodos en el grafo.
     int largo_camino; // Esto serian los saltos
+
     int visitados[30];
+
     int objetivos_restantes[5];
     int restantes;
+
 } instancia_Hebra;
+
+void abrir_Archivo(){
+      archivo_en_lectura = fopen("grafo.csv", "r"); // Abre el archivo en modo lectura
+     if (archivo_en_lectura == NULL) {
+      printf("No se logro abrir el archivo.\n");
+      } else {
+      printf("Archivo grafo.csv abierto exitosamente.\n");
+     }
+
+}
 
 void inicializar_Hebra(instancia_Hebra *hebra, int nodo_actual) {
    //Recibo el nodo actual para diferenciar si es la primera, o ya trae herencia de informacion/camino de una hebra previa.
@@ -35,9 +52,7 @@ void inicializar_Hebra(instancia_Hebra *hebra, int nodo_actual) {
       hebra->nodo_actual = nodo_actual;
    }
 
-
 }
-   
 
 void inicializar_Grafo() {
    for (int i = 0; i < 30; i++) {
@@ -47,11 +62,11 @@ void inicializar_Grafo() {
    }
 }
 
-void leer_Grafo(FILE *archivo) {
+void leer_Grafo(FILE *archivo_en_lectura) {
    int fila_en_lectura = 0; // Para diferenciar entre la primera línea, la segunda y las siguientes.
    char linea[caracteres_max_por_linea]; // Es el 'buffer' de la fila que esta siendo leida.
       
-      while(fgets(linea, caracteres_max_por_linea, archivo) != NULL){
+      while(fgets(linea, caracteres_max_por_linea, archivo_en_lectura) != NULL){
          if (fila_en_lectura == 0) {
             // atoi convierte un string a un entero, en este caso el nodo inicial.
             nodo_inicial = atoi(linea);
@@ -75,12 +90,7 @@ void leer_Grafo(FILE *archivo) {
             
          }
 
-
       } 
-
-
-      
-   fclose(archivo); // Cierra el archivo y libera los recursos.
 
 }
    
@@ -89,26 +99,21 @@ void leer_Grafo(FILE *archivo) {
 int main() {
 
       
-    FILE *archivo = fopen("grafo.csv", "r"); // Abre el archivo en modo lectura
-     if (archivo == NULL) {
-      printf("No se logro abrir el archivo.\n");
-      } else {
-      printf("Archivo grafo.csv abierto exitosamente.\n");
-     }
+    abrir_Archivo(); // Abre el archivo y verifica que se haya abierto correctamente.
    
-    inicializar_Grafo(); // Llenar el grafo con los datos extraidos del archivo
+    inicializar_Grafo(); // Inicializar la matriz del grafo con -1 para marcar las posiciones vacías.
 
-    leer_Grafo(archivo);
+    leer_Grafo(archivo_en_lectura); // Llenar el grafo con los datos extraidos del archivo
 
-    fclose(archivo);
+    fclose(archivo_en_lectura); // Cierra el archivo y libera los recursos.
 
-    pthread_mutex_init(&mutex_mejor_solucion, NULL);
+    pthread_mutex_init(&mutex_mejor_solucion, NULL); // Inicializa el mutex para proteger el acceso a la mejor solución encontrada y no se sobreescriba en simultaneo.
 
-    sem_init(&sem_hebras_disponibles, 0, 40);
+    sem_init(&sem_hebras_disponibles, 0, 40); // Inicializa el semaforo en 40 hebras disponibles, para controlar el num max de hebras concurrentes.
 
-    instancia_Hebra *inicial = malloc(sizeof(instancia_Hebra));
+    instancia_Hebra *inicial = malloc(sizeof(instancia_Hebra)); // Pide memoria para la hebra inicial, para asi poder empezar la exploracion desde el nodo 10 (inicial).
 
-    inicializar_Hebra(inicial, NULL);
+    inicializar_Hebra(inicial, NULL); // Tengo mis observaciones si a lo mejor hay que mandarle mas parametros o no, pero por ahora solo le mando el nodo actual, que en este caso va null para que sepa que es la primera hebra.
 
     explorar(inicial);
 
