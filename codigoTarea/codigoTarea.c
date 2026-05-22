@@ -20,21 +20,17 @@ pthread_mutex_t mutex_mejor_solucion;
 
 
 typedef struct { // Estructura para representar el estado de cada hebra, con la idea de ir propagando el camino de una a otra.
-
     int nodo_actual;
-
     int camino[30]; // Nodos recorridos por la hebra, con un tamaño máximo del número total de nodos en el grafo.
-    int largo_camino; // Esto serian los saltos
-
+    int largo_camino; // Esto serian los saltos dados de nodo a nodo.
     int visitados[30];
-
     int objetivos_restantes[5];
     int restantes;
 
 } instancia_Hebra;
 
 void abrir_Archivo(){
-      archivo_en_lectura = fopen("grafo.csv", "r"); // Abre el archivo en modo lectura
+      archivo_en_lectura = fopen("grafo.csv", "r"); // Abre el archivo en modo lectura.
      if (archivo_en_lectura == NULL) {
       printf("No se logro abrir el archivo.\n");
       } else {
@@ -97,7 +93,6 @@ void leer_Grafo(FILE *archivo_en_lectura) {
 
    
 int main() {
-
       
     abrir_Archivo(); // Abre el archivo y verifica que se haya abierto correctamente.
    
