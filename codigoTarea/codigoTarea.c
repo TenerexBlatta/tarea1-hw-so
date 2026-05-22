@@ -1,9 +1,9 @@
-/* Integrantes: Tomas, Melissa, Cristobal 
+/* Integrantes: Tomas Monge, Melissa Rojas, Cristobal Perez
    Paralelo: INF2322-2
 */
-// Recordar que programa sea compilable finalmente para Linux
-// No I.A.
-#define MAX_NODOS 30
+// Ya se encuentra funcionando en CLion Linux
+
+#define MAX_NODOS 31
 #define MAX_OBJETIVOS 5
 #define MAX_HEBRAS 40
 #include <stdio.h>
@@ -88,7 +88,7 @@ void leer_Grafo(FILE *archivo_en_lectura) {
             char *token = strtok(linea, delimitador);
             
             int indice_nodos_a_recorrer = 0;
-            while (token != NULL && indice_nodos_a_recorrer < 5) {
+            while (token != NULL && indice_nodos_a_recorrer < MAX_OBJETIVOS) {
                nodos_a_recorrer[indice_nodos_a_recorrer] = atoi(token);
                printf("Nodo objetivo encontrado: %d\n", nodos_a_recorrer[indice_nodos_a_recorrer]);
                token = strtok(NULL, delimitador); // Continúa dividiendo la cadena hasta que no haya más tokens.
@@ -114,7 +114,8 @@ void leer_Grafo(FILE *archivo_en_lectura) {
 
                   indice_vecino++;
                }
-                        
+               grafo[nodo][indice_vecino] = -1;
+
             fila_en_lectura++;
             
          }
@@ -133,7 +134,7 @@ void inicializar_hebra_Hija() {
 
 }
 
-void explorar_Grafo(){
+void explorar_Grafo(instancia_Hebra *hebra){
    // Aqui se implementaria la logica de exploracion del grafo, con la idea de ir creando nuevas hebras para cada nodo vecino a visitar, y asi ir propagando el camino recorrido por cada hebra.
   
 }
@@ -167,10 +168,13 @@ int main() {
 
    // Tengo mis observaciones si a lo mejor hay que mandarle mas parametros o no, pero por ahora solo le mando el nodo actual, 
     inicializar_hebra_Inicial(inicial); 
-    
-    explorar_Grafo(inicial);
 
-    sleep(3);
+   imprimir_Grafo();
+
+   explorar_Grafo(inicial);
+
+
+
 
     return 0;
 }
