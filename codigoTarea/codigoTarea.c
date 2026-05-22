@@ -17,8 +17,7 @@ sem_t mutex;
 const int caracteres_max_por_linea = 160;
 
 
-void leer_grafo() {
-   FILE * archivo; // Puntero a archivo
+void leer_Grafo() {
    archivo = fopen("grafo.csv","r"); // Abre el archivo en modo lectura
    int fila_en_lectura = 0; // Para diferenciar entre la primera línea, la segunda y las siguientes.
    char linea[caracteres_max_por_linea]; // Es el 'buffer' de la fila que esta siendo leida.
@@ -53,13 +52,33 @@ void leer_grafo() {
    fclose(archivo); // Cierra el archivo y libera los recursos.
 
 }
-
-int main(){
    
-   sem_init(&sem_hebras_disponibles, 0, 40);
-   sem_init(&mutex, 0, 1);
-   
-   leer_grafo();
+int main() {
 
-   return 0;
+    FILE *archivo = fopen("grafo.csv", "r");
+
+    inicializar_Grafo(); // Llenar el grafo con los datos extraidos del archivo
+
+    leer_nodo_Inicial(archivo); // Para asignar
+
+    leer_nodos_Objetivos(archivo);
+
+    leer_Grafo(archivo);
+
+    fclose(archivo);
+
+    pthread_mutex_init(&mutex, NULL);
+
+    sem_init(&sem_hebras, 0, 40);
+
+    instancia_Hebra *inicial = malloc(sizeof(instancia_Hebra));
+
+    inicializarHebra(inicial);
+
+    explorar(inicial);
+
+    sleep(3);
+
+    return 0;
 }
+
