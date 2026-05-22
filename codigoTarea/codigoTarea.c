@@ -14,19 +14,12 @@ int nodos_a_recorrer[5];
 int grafo [30][30];
 const char simbolo_token = ';';
 sem_t sem_hebras_disponibles;
-sem_t mutex;
+pthread_mutex_t mutex_mejor_solucion;
 const int caracteres_max_por_linea = 160;
 
-
 void leer_Grafo() {
-   archivo = fopen("grafo.csv","r"); // Abre el archivo en modo lectura
    int fila_en_lectura = 0; // Para diferenciar entre la primera línea, la segunda y las siguientes.
    char linea[caracteres_max_por_linea]; // Es el 'buffer' de la fila que esta siendo leida.
-
-   if (archivo == NULL) {
-      printf("No se logro abrir el archivo.\n");
-   } else {
-      printf("Archivo grafo.csv abierto exitosamente.\n");
       
       while(fgets(linea, caracteres_max_por_linea, archivo) != NULL){
          if (fila_en_lectura == 0) {
@@ -35,12 +28,11 @@ void leer_Grafo() {
             printf("Nodo inicial encontrado: %d\n", nodo_inicial);
             fila_en_lectura++;
          } else if (fila_en_lectura == 1) {
+         } 
+         
+            else {
 
-            // nodos_a_recorrer = obtener_nodos_a_recorrer(archivo, fila_en_lectura); 
             
-
-
-
          }
 
 
@@ -51,16 +43,22 @@ void leer_Grafo() {
    }
 
    fclose(archivo); // Cierra el archivo y libera los recursos.
-
+   
 }
    
 int main() {
 
-    FILE *archivo = fopen("grafo.csv", "r");
-
+      
+    FILE *archivo = fopen("grafo.csv", "r"); // Abre el archivo en modo lectura
+     if (archivo == NULL) {
+      printf("No se logro abrir el archivo.\n");
+      } else {
+      printf("Archivo grafo.csv abierto exitosamente.\n");
+     }
+   
     inicializar_Grafo(); // Llenar el grafo con los datos extraidos del archivo
 
-    leer_nodo_Inicial(archivo); // Para asignar
+    leer_nodo_Inicial(archivo); // Para asignar el nodo 10
 
     leer_nodos_Objetivos(archivo);
 
@@ -68,7 +66,7 @@ int main() {
 
     fclose(archivo);
 
-    pthread_mutex_init(&mutex, NULL);
+    pthread_mutex_init(&mutex_mejor_solucion, NULL);
 
     sem_init(&sem_hebras, 0, 40);
 
