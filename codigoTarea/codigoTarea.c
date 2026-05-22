@@ -7,6 +7,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <semaphore.h>
+#include <pthread.h>
 
 int nodo_inicial;
 int nodos_a_recorrer[5];
