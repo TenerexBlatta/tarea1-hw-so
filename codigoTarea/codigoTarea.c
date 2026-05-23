@@ -25,7 +25,7 @@ int grafo[MAX_NODOS][MAX_NODOS];
 int nodos_objetivo[MAX_OBJETIVOS];
 int nodo_inicial;
 int mejor_camino[MAX_NODOS];
-int mejor_cantidad_saltos = 999999;
+int mejor_cantidad_saltos = 999;
 sem_t semaforo_hebras;
 pthread_mutex_t mutex_mejor_solucion;
 
@@ -196,7 +196,7 @@ int main() {
 
     printf("Mejor Solucion de Todas:\n");
     printf("=================================\n");
-    if(mejor_cantidad_saltos == 999999) {
+    if(mejor_cantidad_saltos == 999) {
         printf("No se encontro solucion.\n");
     } else {
         printf("Camino: ");
