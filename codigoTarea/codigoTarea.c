@@ -1,6 +1,6 @@
 /*
 ========================================================
-INF2322 - Hardware y Sistemas Operativos
+INF2322-02 - Hardware y Sistemas Operativos
 Integrantes: Tomas Monge, Melissa Rojas, Cristobal Perez
 Taller 1 - Vendedor Viajero de 30 Nodos
 ========================================================
@@ -43,7 +43,7 @@ void inicializar_Grafo() {
 }
 
 void leer_Grafo() {
-    // Utilizamos la libreria para leer
+    // Utilizamos la libreria File para leer el archivo .csv
     FILE *archivo_grafo = fopen("../grafo.csv", "r");
     char buffer_linea[160];
     char *token_actual;
@@ -61,15 +61,16 @@ void leer_Grafo() {
             nodo_inicial = atoi(buffer_linea); // pasa token a integer
             printf("Nodo inicial encontrado: %d\n", nodo_inicial);
         } else if(numero_fila == 1) {
-            token_actual = strtok(buffer_linea, ";");
+            token_actual = strtok(buffer_linea, ";"); // carga la linea de nuevo
             int indice_objetivo = 0;
             while(token_actual != NULL && indice_objetivo < MAX_OBJETIVOS) { // cicla por todo los nodos encontrados en la linea
                 nodos_objetivo[indice_objetivo] = atoi(token_actual);
                 printf("Nodo objetivo encontrado: %d\n", nodos_objetivo[indice_objetivo]);
-                token_actual = strtok(NULL, ";");
+                token_actual = strtok(NULL, ";"); // aqui corta el token y pasa al siguiente
                 indice_objetivo++;
             }
         } else {
+            // Aqui llena la matriz con los nodos del grafo
             token_actual = strtok(buffer_linea, ";");
             int nodo_base = atoi(token_actual);
             int indice_vecino = 0;
@@ -119,7 +120,7 @@ int objetivos_Visitados(int *camino) { // Contabiliza cuantos nodos objetivos ha
     return cantidad_objetivos;
 }
 
-void guardar_Mejor_Camino(lista_Nodo lista_actual) {
+void guardar_Mejor_Camino(lista_Nodo lista_actual) { // Aqui se escribe el nuevo camino mas optimo encontrado, se asegura de lockear primero con mutex para que no exista corrupcion y sea acceso atomico.
     pthread_mutex_lock(&mutex_mejor_solucion);
     if(lista_actual.cantidad_saltos < mejor_cantidad_saltos) {
         mejor_cantidad_saltos = lista_actual.cantidad_saltos;
@@ -136,21 +137,21 @@ void guardar_Mejor_Camino(lista_Nodo lista_actual) {
         printf("Saltos: %d\n", lista_actual.cantidad_saltos - 1);
         printf("\n");
     }
-    pthread_mutex_unlock(&mutex_mejor_solucion);
+    pthread_mutex_unlock(&mutex_mejor_solucion); // Se desbloquea el mutex, para que otras hebras escriban.
 }
 
-void explorar_Grafo(lista_Nodo lista_actual) {
+void explorar_Grafo(lista_Nodo lista_actual) { //Se recorre el grafo unidimensionalmente a traves de las columnas, donde cada una representaba un vecino visitable, como se vio en clases, termina al encontrar el primer -1
     if(lista_actual.cantidad_saltos >= mejor_cantidad_saltos) {
         return;
     }
     int nodo_actual = lista_actual.camino[lista_actual.cantidad_saltos - 1];
-    for(int indice_vecino = 0; grafo[nodo_actual][indice_vecino] != -1; indice_vecino++) {
+    for(int indice_vecino = 0; grafo[nodo_actual][indice_vecino] != -1; indice_vecino++) { // Hasta que en la columna no encuentre un -1, sigue recorriendo los vecinos del nodo actual
         int nodo_vecino = grafo[nodo_actual][indice_vecino];
         if(!nodo_Visitado(lista_actual.camino, nodo_vecino)) {
             lista_actual.camino[lista_actual.cantidad_saltos] = nodo_vecino;
             lista_actual.camino[lista_actual.cantidad_saltos + 1] = -1;
             lista_actual.cantidad_saltos++;
-            if(objetivos_Visitados(lista_actual.camino) == MAX_OBJETIVOS) {
+            if(objetivos_Visitados(lista_actual.camino) == MAX_OBJETIVOS) { // Se cerciora de haber encontrado todo los objetivos o sino continua explorando
                 guardar_Mejor_Camino(lista_actual);
             } else {
                 explorar_Grafo(lista_actual);
@@ -160,23 +161,27 @@ void explorar_Grafo(lista_Nodo lista_actual) {
     }
 }
 
-void *funcion_Hebra(void *argumentos) {
-    lista_Nodo lista_actual = *((lista_Nodo *)argumentos);
-    free(argumentos);
+void *funcion_Hebra(void *datos_hebra) { // Se encarga de llamar a la funcion de exploracion del grafo y manejar el semaforo para liberar el espacio de la hebra al terminar su ejecucion.
+    // Se castea el puntero void a un puntero de tipo lista_Nodo, y luego se desreferencia para obtener la estructura en si.
+    lista_Nodo lista_actual = *((lista_Nodo *)datos_hebra);     
+    free(datos_hebra);
     explorar_Grafo(lista_actual);
     sem_post(&semaforo_hebras);
     pthread_exit(NULL);
 }
 
 int main() {
-    inicializar_Grafo(); // Rellena el grafo de -1 para
-    leer_Grafo();
+    inicializar_Grafo(); // Rellena el grafo de -1
+    leer_Grafo(); // Lee desde el .csv con la libreria de files
     imprimir_Grafo();
+
     sem_init(&semaforo_hebras, 0, MAX_HEBRAS);
     pthread_mutex_init(&mutex_mejor_solucion, NULL);
+    
     int nodo_vecino;
     int indice_hebra = 0;
     pthread_t arreglo_hebras[MAX_HEBRAS];
+    
     for(int indice_vecino = 0; (nodo_vecino = grafo[nodo_inicial][indice_vecino]) != -1; indice_vecino++) {
         sem_wait(&semaforo_hebras);
         lista_Nodo *lista_inicial = malloc(sizeof(lista_Nodo));
@@ -211,5 +216,6 @@ int main() {
     // Borramos los semaforos como una buena practica para el uso de recursos.
     sem_destroy(&semaforo_hebras);
     pthread_mutex_destroy(&mutex_mejor_solucion);
+
     return 0;
 }
