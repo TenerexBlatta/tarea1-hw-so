@@ -3,7 +3,6 @@
 INF2322 - Hardware y Sistemas Operativos
 Integrantes: Tomas Monge, Melissa Rojas, Cristobal Perez
 Taller 1 - Vendedor Viajero de 30 Nodos
-Busqueda concurrente usando pthread + semaforos
 ========================================================
 */
 
